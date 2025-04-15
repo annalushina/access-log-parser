@@ -34,34 +34,45 @@ public class Main {
             counter++;
             System.out.println("Путь указан верно. Это файл номер " + counter);
 
+            Statistics statistics = new Statistics();
+
             try  {
                 FileReader fileReader = new FileReader(file);
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 String line = "";
                 while ((line = bufferedReader.readLine()) != null) {
                     totalRequests++;
-                    String userAgent = extractUserAgent(line);
 
-                    if (line.length() > 1024) {
+                    // Проверка длины строки
+                    if (line.length() > 1024)  {
                         throw new RuntimeException("Ошибка!!! Строка длиннее 1024 символов: " + line.length());
-
                     }
-                    if (userAgent != null) {
-                        if (userAgent.contains("Googlebot")) {
+
+                    LogEntry logEntry = new LogEntry(line);
+
+                    statistics.addEntry(logEntry);
+
+
+                    if (line != null) {
+                        if (line.contains("Googlebot")) {
                             googleRequests++;
-                        } else if (userAgent.contains("YandexBot")) {
+                        } else if (line.contains("YandexBot")) {
                             yandexRequests++;
                         }
                     }
-
                 }
                 System.out.println("Общее количество строк в файле: " + totalRequests);
 
                 double googlePercent = (double) googleRequests / totalRequests * 100;
                 double yandexPercent = (double) yandexRequests / totalRequests * 100;
 
-                System.out.println("Количество заросов от Googlebot в процентном соотношении от общего числа запросов составляет: " + googlePercent + "%");
-                System.out.println("Количество заросов от YandexBot в процентном соотношении от общего числа запросов составляет: " + yandexPercent + "%");
+                System.out.println("Количество запросов от Googlebot в процентном соотношении от общего числа запросов составляет: " + googlePercent + "%");
+                System.out.println("Количество запросов от YandexBot в процентном соотношении от общего числа запросов составляет: " + yandexPercent + "%");
+
+
+                System.out.println("Средний объём трафика сайта за час: " + statistics.getTrafficRate() + " байт/час");
+
+
                 bufferedReader.close();
                 fileReader.close();
 
@@ -70,30 +81,8 @@ public class Main {
             } catch (RuntimeException ex) {
                 System.out.println(ex.getMessage());
             }
-
-
         }
     }
 
-    private static String extractUserAgent(String log) {
-        // Пример строки лога: 37.231.123.209 - - [15/May/2015:19:07:32 +0200] "GET / HTTP/1.1" 200 150 "-"
-        // "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
-        String[] parts = log.split("\"");
-        if (parts.length >= 6) {
-            String userAgent = parts[parts.length-1];
-            String[] brackets = userAgent.split("\\(");
-            if (brackets.length >= 2) {
-                String firstBrackets = brackets[brackets.length-1].split("\\)")[0];
-                String[] fragments = firstBrackets.split(";");
-                if (fragments.length >= 2) {
-                    String fragment = fragments[1].trim();
-                    String[] botInfo = fragment.split("/");
-                    if (botInfo.length >= 1) {
-                        return botInfo[0].trim();
-                    }
-                }
-            }
-        }
-        return null;
-    }
+
 }
