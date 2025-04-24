@@ -2,13 +2,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int counter = 0;
+        List<LogEntry> logEntrieList = new ArrayList<>();
+
 
         while (true) {
             int totalRequests = 0;
@@ -36,7 +38,7 @@ public class Main {
 
             Statistics statistics = new Statistics();
 
-            try  {
+            try {
                 FileReader fileReader = new FileReader(file);
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 String line = "";
@@ -44,11 +46,12 @@ public class Main {
                     totalRequests++;
 
                     // Проверка длины строки
-                    if (line.length() > 1024)  {
+                    if (line.length() > 1024) {
                         throw new RuntimeException("Ошибка!!! Строка длиннее 1024 символов: " + line.length());
                     }
 
                     LogEntry logEntry = new LogEntry(line);
+                    logEntrieList.add(logEntry);
 
                     statistics.addEntry(logEntry);
 
@@ -68,10 +71,10 @@ public class Main {
 
                 System.out.println("Количество запросов от Googlebot в процентном соотношении от общего числа запросов составляет: " + googlePercent + "%");
                 System.out.println("Количество запросов от YandexBot в процентном соотношении от общего числа запросов составляет: " + yandexPercent + "%");
-
-
                 System.out.println("Средний объём трафика сайта за час: " + statistics.getTrafficRate() + " байт/час");
-
+                System.out.println("Среднее количество посещений сайта за час: " + statistics.countVisitsPerHour());
+                System.out.println("Среднее количество ошибочных запросов в час: " + statistics.countErrorRequestsPerHour());
+                System.out.println("Средняя посещаемость одним пользователем: " + statistics.countVisitsPerUser());
 
                 bufferedReader.close();
                 fileReader.close();
@@ -83,6 +86,4 @@ public class Main {
             }
         }
     }
-
-
 }
