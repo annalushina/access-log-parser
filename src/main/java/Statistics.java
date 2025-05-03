@@ -1,6 +1,8 @@
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Statistics {
@@ -10,6 +12,8 @@ public class Statistics {
     private int totalVisit;
     private int errorRequest;
     private Set<String> uniqueIP;
+    private Set<String> existingPages;
+    private Map<String, Integer> osCount;
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -18,6 +22,8 @@ public class Statistics {
         this.totalVisit = 0;
         this.errorRequest = 0;
         this.uniqueIP = new HashSet<>();
+        this.existingPages = new HashSet<>();
+        this.osCount = new HashMap<>();
     }
 
     public void addEntry(LogEntry logEntry) {
@@ -42,6 +48,11 @@ public class Statistics {
         if (logEntry.getResponseCode() >= 400) {
             errorRequest++;
         }
+        if (logEntry.getResponseCode() == 200) {
+            existingPages.add(logEntry.getRequestPath());
+        }
+        String osType = logEntry.getUserAgent().getOsType();
+        osCount.put(osType, osCount.getOrDefault(osType, 0) + 1);
     }
 
     public long getTrafficRate() {
@@ -75,5 +86,18 @@ public class Statistics {
 
         return (double) totalVisit / uniqueIP.size();
     }
+    public Set<String> countExistingPages() {
+        return existingPages;
+    }
 
+    public Map<String, Double> getOsStatistics() {
+        Map<String, Double> osPercentage = new HashMap<>();
+        int totalOsCount = osCount.values().stream().mapToInt(Integer::intValue).sum();
+
+        for (Map.Entry<String, Integer> entry : osCount.entrySet()) {
+            osPercentage.put(entry.getKey(), (double) entry.getValue() / totalOsCount);
+        }
+
+        return osPercentage;
+    }
 }

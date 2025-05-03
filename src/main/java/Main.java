@@ -75,7 +75,8 @@ public class Main {
                 System.out.println("Среднее количество посещений сайта за час: " + statistics.countVisitsPerHour());
                 System.out.println("Среднее количество ошибочных запросов в час: " + statistics.countErrorRequestsPerHour());
                 System.out.println("Средняя посещаемость одним пользователем: " + statistics.countVisitsPerUser());
-
+                //  System.out.println("Список всех существующих страниц: " + statistics.countExistingPages());
+                System.out.println("Статистика операционных систем: " + statistics.getOsStatistics());
                 bufferedReader.close();
                 fileReader.close();
 
