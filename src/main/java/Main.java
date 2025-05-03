@@ -79,6 +79,9 @@ public class Main {
                 System.out.println("Список всех несуществующих страниц: " + statistics.getNonExistingPages());
                 System.out.println("Статистика операционных систем: " + statistics.getOsStatistics());
                 System.out.println("Статистика браузеров: " + statistics.getBrowserStatistics());
+                System.out.println("Пиковая посещаемость сайта (в секунду): " + statistics.getPeakVisitsPerSecond());
+                System.out.println("Список сайтов, со страниц которых есть ссылки на текущий сайт: " + statistics.getReferringDomains());
+                System.out.println("Максимальная посещаемость одним пользователем: " + statistics.getMaxVisitsPerUser());
 
                 bufferedReader.close();
                 fileReader.close();

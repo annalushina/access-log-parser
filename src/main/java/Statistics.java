@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Statistics {
     private long totalTraffic;
@@ -13,9 +15,12 @@ public class Statistics {
     private int errorRequest;
     private Set<String> uniqueIP;
     private Set<String> existingPages;
-    private Map<String, Integer> osCount;
     private Set<String> nonExistingPages;
+    private Map<String, Integer> osCount;
     private Map<String, Integer> browserCount;
+    private Map<Integer, Integer> visitsPerSecond;
+    private Set<String> referringDomains;
+    private Map<String, Integer> userVisits;
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -25,9 +30,12 @@ public class Statistics {
         this.errorRequest = 0;
         this.uniqueIP = new HashSet<>();
         this.existingPages = new HashSet<>();
-        this.osCount = new HashMap<>();
         this.nonExistingPages = new HashSet<>();
+        this.osCount = new HashMap<>();
         this.browserCount = new HashMap<>();
+        this.visitsPerSecond = new HashMap<>();
+        this.referringDomains = new HashSet<>();
+        this.userVisits = new HashMap<>();
     }
 
     public void addEntry(LogEntry logEntry) {
@@ -47,6 +55,9 @@ public class Statistics {
         if (logEntry.getUserAgentString() != null && !logEntry.getUserAgentString().toLowerCase().contains("bot")) {
             totalVisit++;
             uniqueIP.add(logEntry.getIpAddress());
+            int second = dateTime.getSecond();
+            visitsPerSecond.put(second, visitsPerSecond.getOrDefault(second, 0) + 1);
+            userVisits.put(logEntry.getIpAddress(), userVisits.getOrDefault(logEntry.getIpAddress(), 0) + 1);
         }
 
         if (logEntry.getResponseCode() >= 400) {
@@ -60,8 +71,15 @@ public class Statistics {
         }
         String osType = logEntry.getUserAgent().getOsType();
         osCount.put(osType, osCount.getOrDefault(osType, 0) + 1);
+
         String browserType = logEntry.getUserAgent().getBrowser();
         browserCount.put(browserType, browserCount.getOrDefault(browserType, 0) + 1);
+        if (logEntry.getReferer() != null) {
+            String domain = extractDomain(logEntry.getReferer());
+            if (domain != null) {
+                referringDomains.add(domain);
+            }
+        }
     }
 
     public long getTrafficRate() {
@@ -120,6 +138,27 @@ public class Statistics {
         }
 
         return browserPercentage;
+    }
+
+    public int getPeakVisitsPerSecond() {
+        return visitsPerSecond.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+    }
+
+    public Set<String> getReferringDomains() {
+        return referringDomains;
+    }
+
+    public int getMaxVisitsPerUser() {
+        return userVisits.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+    }
+
+    private String extractDomain(String referer) {
+        Pattern pattern = Pattern.compile("https?://([^/?#]+)(?:[/?#]|$)");
+        Matcher matcher = pattern.matcher(referer);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
     }
 
 }
