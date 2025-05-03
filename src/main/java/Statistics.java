@@ -14,6 +14,8 @@ public class Statistics {
     private Set<String> uniqueIP;
     private Set<String> existingPages;
     private Map<String, Integer> osCount;
+    private Set<String> nonExistingPages;
+    private Map<String, Integer> browserCount;
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -24,6 +26,8 @@ public class Statistics {
         this.uniqueIP = new HashSet<>();
         this.existingPages = new HashSet<>();
         this.osCount = new HashMap<>();
+        this.nonExistingPages = new HashSet<>();
+        this.browserCount = new HashMap<>();
     }
 
     public void addEntry(LogEntry logEntry) {
@@ -51,8 +55,13 @@ public class Statistics {
         if (logEntry.getResponseCode() == 200) {
             existingPages.add(logEntry.getRequestPath());
         }
+        if (logEntry.getResponseCode() == 404) {
+            nonExistingPages.add(logEntry.getRequestPath());
+        }
         String osType = logEntry.getUserAgent().getOsType();
         osCount.put(osType, osCount.getOrDefault(osType, 0) + 1);
+        String browserType = logEntry.getUserAgent().getBrowser();
+        browserCount.put(browserType, browserCount.getOrDefault(browserType, 0) + 1);
     }
 
     public long getTrafficRate() {
@@ -89,7 +98,9 @@ public class Statistics {
     public Set<String> countExistingPages() {
         return existingPages;
     }
-
+    public Set<String> getNonExistingPages() {
+        return nonExistingPages;
+    }
     public Map<String, Double> getOsStatistics() {
         Map<String, Double> osPercentage = new HashMap<>();
         int totalOsCount = osCount.values().stream().mapToInt(Integer::intValue).sum();
@@ -100,4 +111,15 @@ public class Statistics {
 
         return osPercentage;
     }
+    public Map<String, Double> getBrowserStatistics() {
+        Map<String, Double> browserPercentage = new HashMap<>();
+        int totalBrowserCount = browserCount.values().stream().mapToInt(Integer::intValue).sum();
+
+        for (Map.Entry<String, Integer> entry : browserCount.entrySet()) {
+            browserPercentage.put(entry.getKey(), (double) entry.getValue() / totalBrowserCount);
+        }
+
+        return browserPercentage;
+    }
+
 }
